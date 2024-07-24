@@ -1,0 +1,47 @@
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the dataset
+@st.cache_data
+def load_data():
+    data = pd.read_csv('/mnt/data/202406_202406_연령별인구현황_월간.csv', encoding='cp949') # Adjust encoding if necessary
+    return data
+
+data = load_data()
+
+# Display the dataset for reference
+st.write("## Dataset", data.head())
+
+# Extract relevant columns
+# Adjust these column names based on the actual dataset structure
+regions = data['행정구역']
+# Assuming '중학생 인구수' (Middle School Population) and '총인구수' (Total Population) are present in the dataset
+middle_school_population = data['중학생 인구수']
+
+# Sidebar for user input
+st.sidebar.header('Select Region')
+selected_region = st.sidebar.selectbox('Region', regions.unique())
+
+# Filter data for the selected region
+filtered_data = data[data['행정구역'] == selected_region]
+
+# Calculate the population ratio
+total_population = filtered_data['총인구수'].values[0]
+middle_school_population = filtered_data['중학생 인구수'].values[0]
+other_population = total_population - middle_school_population
+
+# Pie chart data
+labels = ['Middle School Population', 'Other Population']
+sizes = [middle_school_population, other_population]
+colors = ['#ff9999','#66b3ff']
+explode = (0.1, 0) # explode the 1st slice
+
+# Plot pie chart
+fig1, ax1 = plt.subplots()
+ax1.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%',
+        shadow=True, startangle=90)
+ax1.axis('equal') # Equal aspect ratio ensures that pie is drawn as a circle.
+
+st.write(f"## Middle School Population Ratio in {selected_region}")
+st.pyplot(fig1)
